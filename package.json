@@ -1,0 +1,44 @@
+{
+  "name": "doctable",
+  "version": "0.0.1",
+  "description": "A library to help with parsing and transforming tables of documents.",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "jest --no-cache"
+  },
+  "engines": {
+    "node": ">=7.6"
+  },
+  "engineStrict": true,
+  "author": "Viswanath. Ct",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^24.7.1"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageDirectory": "./.jest-coverage"
+  },
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/viswanathct/doctable.git"
+  },
+  "keywords": [
+    "json",
+    "document",
+    "tranform",
+    "table",
+    "denormalize"
+  ],
+  "bugs": {
+    "url": "https://github.com/viswanathct/doctable/issues"
+  },
+  "homepage": "https://github.com/viswanathct/doctable#readme",
+  "dependencies": {
+    "lodash": "^4.17.11"
+  }
+}

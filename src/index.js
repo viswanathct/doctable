@@ -2,11 +2,13 @@
 * Doctable.
 */
 
+// Improve the handling of the delimiter.
+
 const { entries, keys, values } = Object;
 const { result } = require("lodash");
 
 /* Helpers */
-const getIDBuilder = ({ id, delimiter = "-" }) =>
+const getIDBuilder = ({ id, delimiter = "-" }) => //NOTE: A hyphen, not an emoty string is the default delimiter, as data-points of different lengths are more common, than those of the same length.
 	(item) => id.map((idPart) => item[idPart]).join(delimiter);
 
 const findRelationChains = (tables) => {
@@ -35,7 +37,16 @@ const removeSubChains = (chains) => {
 };
 
 /* Exports */
-const denormalize = (schema, data) => {
+const buildIndex = (rows, tableSchema) => {
+	const buildID = getIDBuilder(tableSchema.self);
+	const index = {};
+
+	rows.forEach((row) => index[buildID(row)] = row);
+
+	return index;
+};
+
+const denormalize = (tables, schema) => { //TODO: Allow for denormalizing individual chains.
 	const denormalized = {};
 
 	const chains = removeSubChains(findRelationChains(schema));
@@ -44,12 +55,9 @@ const denormalize = (schema, data) => {
 
 		const ancestors = chain.slice(1);
 		const ancestorIndices = {};
-		ancestors.forEach((ancestor) => {
-			const ancestorTable = schema[ancestor];
-			const buildID = getIDBuilder({ id: ancestorTable.self.id, delimiter: "-" });
-			const ancestorIndex = ancestorIndices[ancestor] = {};
-			data[ancestor].forEach((row) => ancestorIndex[buildID(row)] = row);
-		});
+		ancestors.forEach((ancestor) =>
+			ancestorIndices[ancestor] = buildIndex(tables[ancestor], schema[ancestor]));
+
 		const parentIDBuilders = (() => {
 			const ret = {};
 			chain.slice(0, -1).forEach((tableName) => {
@@ -62,7 +70,7 @@ const denormalize = (schema, data) => {
 		})();
 
 		const currentTable = schema[tableName];
-		data[tableName].forEach((row) => {
+		tables[tableName].forEach((row) => {
 			const record = { [tableName]: row };
 			let parent = currentTable.parent;
 			let currentRow = row;
@@ -83,40 +91,42 @@ const denormalize = (schema, data) => {
 	return denormalized;
 };
 
-const cleanse = (schema, denormalized) => {
+const cleanse = (denormalized, schema) => {
 	const chains = removeSubChains(findRelationChains(schema));
 	const cleansed = {};
 
 	entries(chains).forEach(([tableName, chain]) => {
 		const chainLength = chain.length;
-		const data = denormalized[tableName];
-		cleansed[tableName] = data.filter((record) =>
-			keys(record).length == chainLength);
+		const table = denormalized[tableName];
+		cleansed[tableName] = table.filter((document) =>
+			keys(document).length == chainLength);
 	});
 
 	return cleansed;
 };
 
-const renderView = (() => { //NOTE: The wrapper function is merely for namespacing.
-	const renderView = (view, data) => { //TODO: Enhancement: Compile and cache the render for each view.
+const cast = (() => { //NOTE: The wrapper function is merely for namespacing.
+	const cast = (data, template) => { //Note: The template is the second param, as it makes edits easier.
+		//TODO: Enhancement: Compile and cache the render for each view.
 		const document = {};
-		entries(view).forEach(([key, value]) =>
-			document[key] = (rendererForType[typeof value] || defaultRenderer)(value, data));
+		entries(template).forEach(([key, value]) =>
+			document[key] = (rendererForType[typeof value] || defaultRenderer)(data, value));
 
 		return document;
 	};
 
 	const rendererForType = {
-		object: renderView,
-		function: (value, data) => value(data),
+		object: cast,
+		function: (data, value) => value(data),
 	};
-	const defaultRenderer = (value, data) => result(data, value, null) || null;
+	const defaultRenderer = (data, value) => result(data, value, null) || null;
 
-	return renderView;
+	return cast;
 })();
 
 module.exports = {
+	buildIndex,
 	denormalize,
 	cleanse,
-	renderView,
+	cast,
 };

@@ -3,24 +3,26 @@
 */
 
 // Improve the handling of the delimiter.
+// Use AJV with data coercion to validate and impose data on the incoming schema.
+// Use functions for dynamic IDs, instead of Array of fields and a delimiter.
 
-const { entries, keys, values } = Object;
+const { assign, entries, keys, values } = Object;
 const { result } = require("lodash");
 
 /* Helpers */
 const getIDBuilder = ({ id, delimiter = "-" }) => //NOTE: A hyphen, not an emoty string is the default delimiter, as data-points of different lengths are more common, than those of the same length.
 	(item) => id.map((idPart) => item[idPart]).join(delimiter);
 
-const findRelationChains = (tables) => {
+const findRelationChains = (schema) => {
 	const chains = {};
 
-	entries(tables).forEach(([name, meta]) => {
+	entries(schema).forEach(([name, meta]) => {
 		const relChain = [name];
 		let parentTable = meta.parent;
 		while (parentTable) {
 			let parentTableName = parentTable.name;
 			relChain.push(parentTableName);
-			parentTable = tables[parentTableName].parent;
+			parentTable = schema[parentTableName].parent;
 		}
 		chains[name] = relChain;
 	});
@@ -52,7 +54,6 @@ const denormalize = (tables, schema) => { //TODO: Allow for denormalizing indivi
 	const chains = removeSubChains(findRelationChains(schema));
 	entries(chains).forEach(([tableName, chain]) => {
 		const table = denormalized[tableName] = [];
-
 		const ancestors = chain.slice(1);
 		const ancestorIndices = {};
 		ancestors.forEach((ancestor) =>
@@ -62,9 +63,8 @@ const denormalize = (tables, schema) => { //TODO: Allow for denormalizing indivi
 			const ret = {};
 			chain.slice(0, -1).forEach((tableName) => {
 				const parent = schema[tableName].parent;
-				ret[parent.name] = getIDBuilder(parent);
-				const id = parent.id || schema[parent.name].self.id;
-				ret[parent.name] = getIDBuilder({ id, delimiter: "-" });
+				const builderConfig = assign({}, schema[parent.name].self, parent);
+				ret[parent.name] = getIDBuilder(builderConfig);
 			});
 			return ret;
 		})();
@@ -109,8 +109,10 @@ const cast = (() => { //NOTE: The wrapper function is merely for namespacing.
 	const cast = (data, template) => { //Note: The template is the second param, as it makes edits easier.
 		//TODO: Enhancement: Compile and cache the render for each view.
 		const document = {};
-		entries(template).forEach(([key, value]) =>
-			document[key] = (rendererForType[typeof value] || defaultRenderer)(data, value));
+		entries(template).forEach(([key, value]) => {
+			const ret = (rendererForType[typeof value] || result)(data, value);
+			if(ret !== undefined) document[key] = ret;
+		});
 
 		return document;
 	};
@@ -119,7 +121,6 @@ const cast = (() => { //NOTE: The wrapper function is merely for namespacing.
 		object: cast,
 		function: (data, value) => value(data),
 	};
-	const defaultRenderer = (data, value) => result(data, value, null) || null;
 
 	return cast;
 })();

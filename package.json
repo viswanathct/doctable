@@ -39,6 +39,7 @@
   },
   "homepage": "https://github.com/viswanathct/doctable#readme",
   "dependencies": {
+    "@laufire/utils": "0.0.3",
     "lodash": "^4.17.11"
   }
 }

@@ -17,6 +17,9 @@ module.exports = {
 					type: 'rel',
 					table: 'car',
 				},
+				other: {
+					source: 'misc',
+				}
 			},
 		},
 		car: {
@@ -31,6 +34,7 @@ module.exports = {
 				id: 'a',
 				friend: 'b',
 				car: '1',
+				misc: 'some info',
 			},
 			{
 				id: 'b',

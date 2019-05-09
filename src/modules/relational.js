@@ -2,7 +2,7 @@
 * The relational doctable.
 */
 
-const { keys, values } = Object;
+const { assign, keys, values } = Object;
 const { isArray } = Array;
 const { collect } = require("@laufire/utils").collection;
 const { getIDBuilder, findRelationChains, buildIndex } = require("../helpers");
@@ -22,6 +22,7 @@ const standardizeSchema = (() => {
 	};
 
 	const fieldSchemaProcessors = {
+		undefined: (fieldSchema, field) => assign({ source: field }, fieldSchema),
 		rel: (fieldSchema, field) => {
 			if(isArray(fieldSchema.id)) {
 				fieldSchema.idBuilder = getIDBuilder(fieldSchema);
@@ -37,9 +38,10 @@ const standardizeSchema = (() => {
 	};
 
 	const standardizeFieldSchema = (fieldSchema, field) =>
-		typeof fieldSchema != 'object'
-			? { type: fieldSchema }
-			: fieldSchemaProcessors[fieldSchema.type](fieldSchema, field)
+			typeof fieldSchema != 'object'
+			? { type: fieldSchema, source: field }
+			: (fieldSchemaProcessors[fieldSchema.type]
+				|| fieldSchemaProcessors[undefined])(fieldSchema, field);
 
 	return (schema) => {
 			values(schema).forEach((table) => {
@@ -63,12 +65,13 @@ const relational = (schema, dataset) => {
 	}
 
 	const parseRecord = (record, schema) => //TODO: Enhancement; Compile the record parsers.
-		collect(schema.fields, (fieldSchema, field) => {
-			const value = record[field];
+		collect(schema.fields, (fieldSchema) => {
+			const source = fieldSchema.source
+			const value = record[source];
 
-			if(value !== undefined) {
+			if(value !== undefined || !source) {
 				const recordParser = recordParsers[fieldSchema.type];
-				return recordParser ? recordParser(record, fieldSchema, field) : value
+				return recordParser ? recordParser(record, fieldSchema) : value
 			}
 		});
 

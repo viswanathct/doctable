@@ -7,7 +7,7 @@ const { schema, data } = require("./stub");
 const { relational } = require("../src");
 
 /* Helpers */
-const { runExamples } = require('./helpers');
+const { log, runExamples } = require('./helpers');
 
 /* Data */
 
@@ -19,7 +19,7 @@ const examples = {
 
 		const table = relational(schema, data);
 		table.denormalize('person');
-		console.log(JSON.stringify(table.denormalized))
+		log(JSON.stringify(table.denormalized))
 	},
 };
 

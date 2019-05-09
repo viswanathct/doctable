@@ -3,7 +3,7 @@
 */
 
 const { entries } = Object;
-const { result } = require("lodash");
+const { result } = require("@laufire/utils").collection;
 
 /* Exports */
 const render = (document, template) => { //Note: The template is the second param, as it makes edits easier.
@@ -23,4 +23,7 @@ const rendererForType = {
 	function: (data, value) => value(data),
 };
 
-module.exports = render;
+module.exports = {
+	result,
+	render,
+};

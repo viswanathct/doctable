@@ -38,7 +38,9 @@ const hierarchical = (schema, dataset) => {
 				const parentTableName = parent.name;
 				const parentRow = indices[parentTableName][parentIDBuilders[parentTableName](currentRow)];
 
-				record[parentTableName] = parentRow;
+				if(parentRow)
+					record[parentTableName] = parentRow;
+
 				parent = schema[parentTableName].parent;
 				currentRow = parentRow;
 			}

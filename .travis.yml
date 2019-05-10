@@ -1,0 +1,19 @@
+language: node_js
+node_js:
+  - "8"
+install:
+  - npm install
+script:
+  - npm run test
+  - npm pack | xargs -I {} mv {} doctable.tgz
+deploy:
+  - provider: npm
+    email: $npm_email
+    api_key: $npm_token
+    on:
+      tags: true
+  - provider: releases
+    api_key: $git_api_key
+    file: doctable.tgz
+    on:
+      tags: true

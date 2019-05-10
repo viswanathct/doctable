@@ -8,7 +8,7 @@
 
 ## Examples
 
-* Examples would soon be available at **the [examples](https://github.com/author-name/doctable/tree/master/examples) dir**.
+* Examples would soon be available at **the [examples](https://github.com/viswanathct/doctable/tree/master/examples) dir**.
 ```sh
 # Or run the following (with node v8+):
 $ node ./examples/cheatsheet.js

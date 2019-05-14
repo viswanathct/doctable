@@ -1,6 +1,6 @@
 {
   "name": "doctable",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A library to help with parsing and transforming tables of documents.",
   "main": "./src/index.js",
   "scripts": {

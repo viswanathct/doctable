@@ -52,7 +52,7 @@ const standardizeSchema = (() => {
 })();
 
 /* Exports */
-const relational = (schema, dataset) => {
+const doctable = (schema, dataset) => {
 	standardizeSchema(schema);
 
 	const chains = findRelationChains(schema);
@@ -106,4 +106,7 @@ const relational = (schema, dataset) => {
 	return self;
 };
 
-module.exports = relational;
+module.exports = {
+	doctable,
+	findRelationChains,
+};

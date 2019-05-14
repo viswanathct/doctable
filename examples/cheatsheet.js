@@ -4,7 +4,7 @@
 const { schema, data } = require("./stub");
 
 /* Targets */
-const { relational } = require("../src");
+const { doctable: relational } = require("../src").relational;
 
 /* Helpers */
 const { log, runExamples } = require('./helpers');

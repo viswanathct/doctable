@@ -6,7 +6,10 @@ const { assign, entries, keys } = Object;
 const { getIDBuilder, findRelationChains,
 	removeSubChains, buildIndex } = require('../helpers');
 
-const hierarchical = (schema, dataset) => {
+const getLeafChains = (schema) =>
+	removeSubChains(findRelationChains(schema));
+
+const doctable = (schema, dataset) => {
 	const indices = {};
 	const denormalized = {};
 
@@ -52,7 +55,7 @@ const hierarchical = (schema, dataset) => {
 	};
 
 	const denormalize = () => {
-		const chains = removeSubChains(findRelationChains(schema));
+		const chains = getLeafChains(schema);
 		keys(chains).forEach((table) => {
 			denormalized[table] = denormalizeTable(table, dataset, schema);
 		});
@@ -85,4 +88,7 @@ const hierarchical = (schema, dataset) => {
 	return self;
 };
 
-module.exports = hierarchical;
+module.exports = {
+	doctable,
+	getLeafChains,
+};
